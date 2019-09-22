@@ -1,13 +1,11 @@
 import { hot } from 'react-hot-loader/root';
+import webview from './webview/webview';
 import * as React from 'react';
 
-import CounterContainer from '../containers/CounterContainer';
-
 const Application = () => (
-    <div>
-        Hello World from Electron!
-        <CounterContainer />
-    </div>
+  <div>
+    <WebView src="http://localhost:3000/"/>
+  </div>
 );
 
 export default hot(Application);

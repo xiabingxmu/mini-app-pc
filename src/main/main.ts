@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
 
@@ -14,16 +14,34 @@ const installExtensions = async () => {
     ).catch(console.log);
 };
 
+ipcMain.on('message', function (event, arg) {// 监听渲染进程发送的message
+
+    console.log(arg);// prints "ping"
+
+    event.sender.send('message', arg);// event.sender获取事件的发送者，并发送reply事件，‘pong’为发送的数据
+
+});
+
 const createWindow = async () => {
     if (process.env.NODE_ENV !== 'production') {
         await installExtensions();
     }
-
-    win = new BrowserWindow({ width: 800, height: 600 });
+    // 启动一个渲染进程
+    win = new BrowserWindow({
+        width: 800, height: 600, 
+        webPreferences: {
+            nodeIntegration: true,
+            webviewTag: true,
+        } 
+    });
 
     if (process.env.NODE_ENV !== 'production') {
         process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = '1';
-        win.loadURL(`http://localhost:2003`);
+        win.loadURL(`http://localhost:3000`);
+        win.webContents.on('did-finish-load', function () {
+            win!.webContents.send('message', {count: 999}); // 主进程发送消息ping
+            win!.webContents.openDevTools();
+        });
     } else {
         win.loadURL(
             url.format({
